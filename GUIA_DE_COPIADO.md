@@ -189,6 +189,43 @@ git commit -m "feat: gestionar errores y mensajes localizados"
 git push origin main
 ```
 
+## Configurar Git y entrar a GitHub desde el laboratorio
+
+Solo si todavía no has configurado la cuenta en esta computadora:
+
+```bash
+git config --global user.name "Matthew Shinko Okuhama Diaz"
+git config --global user.email "mattoku4@gmail.com"
+git config --global --list
+```
+
+Si `gh` está instalado, inicia sesión:
+
+```bash
+gh auth login
+gh auth status
+```
+
+En el asistente selecciona `GitHub.com`, `HTTPS`, `Yes` y `Login with a web browser`. Autoriza el acceso desde `https://github.com/login/device` usando únicamente el código mostrado en tu terminal. No compartas códigos ni tokens.
+
+Si `gh` no está instalado, puedes instalarlo con `brew install gh` si Homebrew está disponible.
+
+**Antes de hacer un push**, verifica que estás trabajando en el repositorio correcto:
+
+```bash
+git remote -v
+```
+
+Al terminar de usar una computadora compartida:
+
+```bash
+gh auth logout
+git config --global --unset user.name
+git config --global --unset user.email
+```
+
+La configuración global de nombre y correo se aplica a otros repositorios de ese usuario de macOS. En una computadora compartida, también puedes usar `git config user.name` y `git config user.email` sin `--global` para limitar la identidad a un solo repositorio.
+
 ## Paso 11. Verificar el funcionamiento
 
 Primero comprueba que estás dentro del repositorio de evaluación:
