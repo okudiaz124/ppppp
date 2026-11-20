@@ -1,33 +1,84 @@
-# MediSupply - Backend
+# MediSupply · Backend
 
-API REST para registrar solicitudes de suministros médicos.
+**API REST de solicitudes de suministros médicos** desarrollada con Java y Spring Boot. El código está organizado por capas y bounded contexts, con reglas de negocio sencillas, persistencia en MySQL y manejo de errores en dos idiomas.
+
+> **Empieza aquí:** [GUÍA COMPLETA PARA COPIAR LOS ARCHIVOS, EN ORDEN Y CON COMMITS](./GUIA_DE_COPIADO.md). Cada nombre de archivo en la guía es un enlace directo al código de GitHub, listo para copiar y pegar en IntelliJ.
 
 ## Tecnologías
-- Java 25
-- Spring Boot 4.0.4
-- Maven
-- Spring Data JPA
-- MySQL
-- SpringDoc OpenAPI
 
-## Base de datos
-La aplicación usa el esquema `medi_supply` y la tabla `supply_requests`.
+| Herramienta | Uso |
+|---|---|
+| Java 25 | Lenguaje |
+| Spring Boot 4.0.x | Backend |
+| Spring Web MVC | API REST |
+| Spring Data JPA | Acceso a datos |
+| MySQL | Base de datos `medi_supply` |
+| Lombok | Reducción de código repetitivo |
+| SpringDoc OpenAPI | Documentación de la API |
+| Maven | Dependencias y ejecución |
 
-Se necesita MySQL en ejecución. Por defecto se utiliza el usuario `root` y contraseña vacía. Se pueden configurar las variables de entorno `DB_USERNAME` y `DB_PASSWORD`.
+## Organización de archivos
 
-## Ejecución
-Abrir el proyecto con IntelliJ IDEA, seleccionar JDK 25 y ejecutar `MediSupplyApplication`.
+```text
+src/main/java/com/medisupply/platform/u202419311/
+├── MediSupplyApplication.java
+├── procurement/
+│   ├── domain/
+│   │   ├── model/
+│   │   │   ├── aggregates/
+│   │   │   │   ├── SupplyRequest.java
+│   │   │   │   └── SupplyRequestStatus.java
+│   │   │   └── valueobjects/
+│   │   │       ├── RequestCode.java
+│   │   │       ├── FacilityId.java
+│   │   │       ├── FulfillmentPeriod.java
+│   │   │       └── SupplyBatch.java
+│   │   └── repositories/
+│   │       └── SupplyRequestRepository.java
+│   ├── application/internal/commandservices/
+│   │   ├── CreateSupplyRequestCommand.java
+│   │   └── CreateSupplyRequestHandler.java
+│   ├── infrastructure/persistence/jpa/
+│   │   ├── entities/SupplyRequestEntity.java
+│   │   ├── repositories/SupplyRequestJpaRepository.java
+│   │   └── adapters/SupplyRequestRepositoryAdapter.java
+│   └── interfaces/rest/
+│       ├── SupplyRequestsController.java
+│       ├── resources/
+│       │   ├── CreateSupplyRequestResource.java
+│       │   └── SupplyRequestResource.java
+│       └── transform/SupplyRequestAssembler.java
+└── shared/
+    ├── domain/
+    │   ├── DomainValidationException.java
+    │   ├── BusinessConflictException.java
+    │   └── Result.java
+    └── interfaces/rest/
+        ├── GlobalExceptionHandler.java
+        └── resources/ApiError.java
 
-Con Maven:
-
-```bash
-mvn spring-boot:run
+src/main/resources/
+├── application.properties
+├── messages.properties
+└── messages_es.properties
 ```
 
-## Endpoint
-`POST /api/v1/supply-requests`
+## Ruta rápida
 
-Ejemplo de solicitud:
+| Orden | Lo que se desarrolla | Enlace |
+|---|---|---|
+| 01–02 | Configuración, Java 25 y clase principal | [Ver guía](./GUIA_DE_COPIADO.md#paso-01-configurar-maven-ya-realizado) |
+| 03 | Objetos de valor y validaciones | [Ver archivos](./GUIA_DE_COPIADO.md#paso-03-value-objects-y-validaciones) |
+| 04–05 | Agregado y contrato de repositorio | [Ver archivos](./GUIA_DE_COPIADO.md#paso-04-agregado-y-estado-de-la-solicitud) |
+| 06 | Persistencia con JPA y MySQL | [Ver archivos](./GUIA_DE_COPIADO.md#paso-06-persistencia-con-jpa) |
+| 07 | Comando y caso de uso | [Ver archivos](./GUIA_DE_COPIADO.md#paso-07-comando-y-caso-de-uso) |
+| 08–09 | Recursos HTTP y endpoint POST | [Ver archivos](./GUIA_DE_COPIADO.md#paso-08-recursos-y-transformador-http) |
+| 10 | Mensajes en inglés y español | [Ver archivos](./GUIA_DE_COPIADO.md#paso-10-errores-y-mensajes-en-dos-idiomas) |
+| 11 | Compilar y probar | [Ver instrucciones](./GUIA_DE_COPIADO.md#paso-11-verificar-el-funcionamiento) |
+
+## Endpoint del examen
+
+`POST /api/v1/supply-requests`
 
 ```json
 {
@@ -39,80 +90,36 @@ Ejemplo de solicitud:
   "supplyBatchUnit": "BOX",
   "urgencyLevel": 3,
   "status": "PENDING",
-  "requestNotes": "Urgent medical supplies required for emergency care"
+  "requestNotes": "Materiales para emergencias"
 }
 ```
 
-Devuelve 201 al registrar, 400 ante datos inválidos, 409 cuando el código está repetido y 500 ante errores imprevistos.
+| Código HTTP | Resultado |
+|---|---|
+| `201 Created` | Solicitud registrada |
+| `400 Bad Request` | Datos inválidos |
+| `409 Conflict` | Código de solicitud duplicado |
+| `500 Internal Server Error` | Error inesperado |
 
-El estado puede omitirse para utilizar `PENDING`. Para solicitar mensajes en español, utilizar la cabecera `Accept-Language: es-PE`. De lo contrario, se utiliza inglés.
+Para mensajes en español, incluir `Accept-Language: es-PE`.
 
-La documentación interactiva está disponible en `/swagger-ui/index.html`.
+## Preparación y ejecución
 
-## Estructura
-- `procurement/domain`: reglas de negocio, agregado y objetos de valor.
-- `procurement/application`: comando y caso de uso.
-- `procurement/interfaces`: recurso HTTP y ensamblador.
-- `procurement/infrastructure`: persistencia JPA.
-- `shared`: patrón Result y manejo común de errores.
+1. Usar JDK 25 e importar las dependencias del `pom.xml` con Maven.
+2. Iniciar MySQL y preparar el esquema `medi_supply`. La configuración está en [`application.properties`](./src/main/resources/application.properties).
+3. Ejecutar `./mvnw clean compile` y `./mvnw spring-boot:run` **si tienes Maven Wrapper**; también puedes usar `mvn` si lo tienes instalado.
+4. Acceder a Swagger UI mediante `http://localhost:8080/swagger-ui/index.html` y probar el endpoint.
 
-## Alcance
-Solo se desarrolla el registro POST. No se implementan endpoints GET, PUT ni DELETE.
+## Trabajo en el repositorio de evaluación
 
-## Configurar Git y acceder a GitHub
+El repositorio **`ppppp` es una referencia de desarrollo**. El proyecto de evaluación es [`okudiaz124/pc20729u202419311`](https://github.com/okudiaz124/pc20729u202419311).
 
-Abrir la terminal de IntelliJ IDEA o Terminal de macOS.
+- Conserva el `pom.xml` del repositorio de evaluación con su `artifactId` propio: `pc20729u202419311`.
+- Copia los archivos Java respetando los paquetes y los comentarios existentes.
+- Registra commits separados por los cambios que realmente vas implementando.
+- **No copies las carpetas `.git` ni `target`**.
+- [Guía de configuración de Git, autenticación y commits](./GUIA_DE_COPIADO.md#cómo-copiar-un-archivo-en-intellij).
 
-Configurar el nombre y correo que aparecen en los commits:
+## Estado
 
-```bash
-git config --global user.name "Matthew Shinko Okuhama Diaz"
-git config --global user.email "mattoku4@gmail.com"
-git config --global --list
-```
-
-Iniciar sesión en GitHub con GitHub CLI:
-
-```bash
-gh auth login
-```
-
-Seleccionar `GitHub.com`, luego `HTTPS`, responder `Yes` a la autenticación de Git y elegir `Login with a web browser`. Abrir `https://github.com/login/device`, introducir el código temporal mostrado **en tu propia terminal** y autorizar la aplicación. No compartir ese código ni tokens.
-
-Comprobar la sesión:
-
-```bash
-gh auth status
-```
-
-Si el comando `gh` no existe y Homebrew está instalado:
-
-```bash
-brew install gh
-```
-
-Clonar este repositorio:
-
-```bash
-git clone https://github.com/okudiaz124/ppppp.git
-cd ppppp
-```
-
-Para registrar cambios reales en el proyecto:
-
-```bash
-git status
-git add .
-git commit -m "feat: agregar funcionalidad"
-git push origin main
-```
-
-En un equipo compartido, cerrar la sesión y limpiar los datos globales al terminar:
-
-```bash
-gh auth logout
-git config --global --unset user.name
-git config --global --unset user.email
-```
-
-La configuración `user.name` y `user.email` identifica los commits; por sí sola **no inicia sesión** en GitHub.
+Código de referencia subido a GitHub. **No se ha confirmado su compilación ni el funcionamiento con una instancia real de MySQL.** Antes de entregar, completar la revisión contra todas las páginas del examen y ejecutar las pruebas correspondientes.
